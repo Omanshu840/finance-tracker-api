@@ -37,4 +37,19 @@ router.get('/', requireLogin, (req, res) => {
     })
 })
 
+router.delete('/:id', requireLogin, (req, res) => {
+    Expense.findOne({_id:req.params.id})
+    .then((expense)=>{
+        expense.remove()
+        .then(result=>{
+            res.json(result)
+        }).catch(err=>{
+            return res.status(422).json({error:err})
+        })
+    })
+    .catch(err => {
+        return res.status(422).json({error:err})
+    })
+})
+
 module.exports = router
