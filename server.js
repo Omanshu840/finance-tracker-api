@@ -22,12 +22,14 @@ mongoose.connection.on('error', (err) => {
 
 require('./models/user')
 require('./models/expense')
+require('./models/transaction')
 
 app.use(cors());
 app.use(express.json())
 app.use(require('./routes/auth'))
 app.use('/expense',require('./routes/expense'))
 app.use('/user', require('./routes/user'))
+app.use('/transaction', require('./routes/transaction'))
 
 app.listen(PORT, () => {
     console.log('Server is running on ', PORT)

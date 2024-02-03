@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const {ObjectId} = mongoose.Schema.Types
 
-const expenseSchema = new mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -19,8 +19,13 @@ const expenseSchema = new mongoose.Schema({
         enum : ["Household", "Food", "Groceries", "Shopping", "Travel", "Others"],
         required: true
     },
-    date: {
-        type: Date,
+    dayOfRepeat: {
+        type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ["Income", "Expense"],
         required: true
     },
     user: {
@@ -29,4 +34,4 @@ const expenseSchema = new mongoose.Schema({
     }
 })
 
-mongoose.model('Expense', expenseSchema)
+mongoose.model('Transaction', transactionSchema)
