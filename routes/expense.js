@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const mongoose = require('mongoose')
 const Expense = mongoose.model("Expense")
+const User = mongoose.model("User")
 const requireLogin = require('../middleware/requireLogin')
 
 
@@ -14,19 +15,38 @@ const formatDate = (date, isStart) => {
     return date;
 }
 
-router.post('/', requireLogin, (req, res) => {
-    const {name, amount, description, date, category} = req.body
-    if(!name || !amount || !date || !category) {
-        return res.status(422).json({error: "please add all the fields"})
+router.post('/', requireLogin, async (req, res) => {
+    const { name, amount, description, date, category, contributors, paidBy } = req.body;
+
+    // Check if required fields are provided
+    if (!name || !amount || !date || !category || !contributors || !paidBy) {
+        return res.status(422).json({ error: "Please add all the required fields" });
     }
+
+    const contributorsArray = [];
+    for(let i = 0; i<contributors.length; i++) {
+        const contributor = contributors[i];
+        const contributorUser = await User.findById(contributor._id);
+        contributorUser.password = undefined;
+        contributorsArray.push({
+            user: contributorUser,
+            amount: contributor.amount
+        })
+    }
+
+    const paidByUser = await User.findById(paidBy);
+    paidByUser.password = undefined;
+
+    // Create the expense object
     const expense = new Expense({
-        name: name,
-        amount: amount,
-        description: description,
-        date: date,
-        category, category,
-        user: req.user
-    })
+        name,
+        amount,
+        description,
+        date,
+        category,
+        contributors: contributorsArray,
+        paidBy: paidByUser
+    });
 
     expense.save()
     .then((result) => {
@@ -54,13 +74,14 @@ router.get('/', requireLogin, (req, res) => {
     let startDate = formatDate(new Date(year, month, 1), true);
     let endDate = formatDate(new Date(year, month + 1, 0), false);
 
-    Expense.find({
-        user: req.user,
-        date: {
-            $gte: startDate,
-            $lte: endDate
-        }
-    })
+    const filterCriteria = {
+        $and: [
+            { date: { $gte: startDate, $lte: endDate } },
+            { 'contributors.user': req.user } // Check if the user is a contributor
+        ]
+    };
+
+    Expense.find(filterCriteria)
     .then(expenses => {
         res.json({
             expenses

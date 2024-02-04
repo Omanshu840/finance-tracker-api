@@ -23,9 +23,20 @@ const expenseSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    user: {
+    contributors: [{
+        user: {
+            type: ObjectId,
+            ref: 'User'
+        },
+        amount: {
+            type: Number,
+            required: true
+        }
+    }],
+    paidBy: {
         type: ObjectId,
-        ref: "User"
+        ref: 'User',
+        required: true
     }
 })
 
